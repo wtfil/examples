@@ -1,5 +1,5 @@
 /**
- * Execution content demo
+ * Execution context demo
  * Run "node node-env.js"
  *
  * @see http://127.0.0.1:3000
@@ -8,33 +8,36 @@ var domain = require('domain'),
     http = require('http');
 
 http.createServer(function (req, res) {
+    // creating new domain
     var reqDomain = domain.create();
     
-    // error handler for one request
+    // error handler for each request
     reqDomain.on('error', function (err) {
         res.writeHead(500);
         res.end(err.stack);
         res.on('close', function () {
             reqDomain.dispose();
-        })
+        });
     });
 
     reqDomain.run(function () {
-        // creating magic
+        // creating execution context
         process.domain.state = {
             req: req,
             res: res
         };
         
         // no arguments given
-        someFunction();
+        setTimeout(someFunction, 1000);
     });
 }).listen(3000);
 
+// "req" "res" out of scope
 function someFunction() {
+    // getting "req" reference from domain
     var res = process.domain.state.res;
     
-    // Random error
+    // random error
     if (Math.random() > 0.5) {
 
         // async error
